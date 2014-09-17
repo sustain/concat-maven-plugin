@@ -93,6 +93,7 @@ public class ConcatMojo extends AbstractMojo {
 		if(validate()){
 			getLog().info("Going to concatenate files to destination file: " + outputFile.getAbsolutePath());
 			try {
+                FileUtils.writeStringToFile(outputFile, "", false);
 				for(File inputFile : concatFiles){
                     if (skipUnreadableFiles) {
                         if (!inputFile.exists()) {
@@ -132,7 +133,7 @@ public class ConcatMojo extends AbstractMojo {
 		
 		if(concatFiles == null || concatFiles.size() ==0){
 			throw new MojoExecutionException("Please specify the file(s) to concatenate");
-		}else{
+		}else if (!skipUnreadableFiles) {
 			for(File file : concatFiles){
 				if(!file.exists()){
 					throw new MojoExecutionException(file.getAbsolutePath() + " does not exists.");
