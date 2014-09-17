@@ -62,19 +62,60 @@ public class ConcatMojo extends AbstractMojo {
 	private boolean appendNewline=false;
 
 	
+	/**
+	 * Skip non-existent or unreadable files
+	 *
+	 * @parameter
+	 */
+	private boolean skipUnreadableFiles=true;
+
+
+	/**
+	 * output before each file. The string {FILENAME} wil be replaced by the current file name. The string {NL} will be replaced by a line separator
+	 *
+	 * @parameter
+	 */
+	private String fileHeader=null;
+
+	/**
+	 * output after each file. The string {FILENAME} wil be replaced by the current file name. The string {NL} will be replaced by a line separator
+	 *
+	 * @parameter
+	 */
+	private String fileFooter=null;
+
+
 	/* (non-Javadoc)
 	 * @see org.apache.maven.plugin.AbstractMojo#execute()
 	 */
 	public void execute() throws MojoExecutionException {
+        String lineSeparator = System.getProperty("line.separator");
 		if(validate()){
-			getLog().debug("Going to concatenate files to destination file: " + outputFile.getAbsolutePath());
+			getLog().info("Going to concatenate files to destination file: " + outputFile.getAbsolutePath());
 			try {
 				for(File inputFile : concatFiles){
+                    if (skipUnreadableFiles) {
+                        if (!inputFile.exists()) {
+                            getLog().warn("Skipping non-existent file: " + inputFile.getAbsolutePath());
+                            continue;
+                        } else if (!inputFile.canRead()) {
+                            getLog().warn("Skipping unreadable file: " + inputFile.getAbsolutePath());
+                            continue;
+                        }
+                    }
 					getLog().debug("Concatenating file: " + inputFile.getAbsolutePath());
 					String input = FileUtils.readFileToString(inputFile);
+                    if (fileHeader != null) {
+                        String header = fileHeader.replace("{FILENAME}", inputFile.getName()).replace("{NL}", lineSeparator);
+                        FileUtils.writeStringToFile(outputFile, header, true);
+                    }
 					FileUtils.writeStringToFile(outputFile, input, true);
+                    if (fileFooter != null) {
+                        String footer = fileFooter.replace("{FILENAME}", inputFile.getName()).replace("{NL}", lineSeparator);
+                        FileUtils.writeStringToFile(outputFile, footer, true);
+                    }
 					if(appendNewline){
-						FileUtils.writeStringToFile(outputFile, System.getProperty("line.separator"), true);
+                        FileUtils.writeStringToFile(outputFile, lineSeparator, true);
 					}
 					
 				}

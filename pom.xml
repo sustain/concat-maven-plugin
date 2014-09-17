@@ -1,24 +1,39 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.github.bomas</groupId>
+	<groupId>com.sustain</groupId>
 	<artifactId>concat-maven-plugin</artifactId>
 	<packaging>maven-plugin</packaging>
-	<version>0.0.1</version>
+	<version>0.0.2</version>
 	
 	<description>Maven plugin that can concatenate several files into one new file.</description>
 	<name>concat-maven-plugin Maven Mojo</name>
 	
-	<url>https://github.com/bomas/concat-maven-plugin</url>
+	<url>https://github.com/sustain/concat-maven-plugin</url>
 	<scm>
-		<url>https://github.com/bomas/concat-maven-plugin.git</url>
+		<url>https://github.com/sustain/concat-maven-plugin.git</url>
 	</scm>
 	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	
-	
+    <distributionManagement>
+        <repository>
+            <uniqueVersion>false</uniqueVersion>
+            <id>sustain-internal</id>
+            <name>Sustain Internal Repository</name>
+            <url>http://10.1.3.33:8080/archiva/repository/internal</url>
+            <layout>default</layout>
+        </repository>
+        <snapshotRepository>
+            <uniqueVersion>true</uniqueVersion>
+            <id>sustain-snapshots</id>
+            <name>Sustain Snapshots Repository</name>
+            <url>http://10.1.3.33:8080/archiva/repository/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
 	<build>
     	<plugins>
       		<plugin>
