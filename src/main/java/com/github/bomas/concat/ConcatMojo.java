@@ -16,11 +16,13 @@ package com.github.bomas.concat;
  * limitations under the License.
  */
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
 
+import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.BOMInputStream;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 
@@ -105,7 +107,13 @@ public class ConcatMojo extends AbstractMojo {
                         }
                     }
 					getLog().debug("Concatenating file: " + inputFile.getAbsolutePath());
-					String input = FileUtils.readFileToString(inputFile);
+                    String input;
+                    try (InputStream inputStream = new FileInputStream(inputFile)) {
+                        BOMInputStream bomInputStream = new BOMInputStream(inputStream);
+                        ByteOrderMark bom = bomInputStream.getBOM();
+                        String charsetName = bom == null ? "UTF-8" : bom.getCharsetName();
+                        input = IOUtils.toString(bomInputStream, charsetName);
+                    }
                     if (fileHeader != null) {
                         String header = fileHeader.replace("{FILENAME}", inputFile.getName()).replace("{NL}", lineSeparator);
                         FileUtils.writeStringToFile(outputFile, header, true);
@@ -118,7 +126,7 @@ public class ConcatMojo extends AbstractMojo {
 					if(appendNewline){
                         FileUtils.writeStringToFile(outputFile, lineSeparator, true);
 					}
-					
+
 				}
 			}catch(IOException e){
 				throw new MojoExecutionException("Failed to concatenate", e);
