@@ -16,88 +16,86 @@ package com.github.bomas.concat;
  * limitations under the License.
  */
 
-import java.io.*;
-import java.util.List;
-
 import org.apache.commons.io.ByteOrderMark;
-import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 
+import java.io.*;
+import java.util.List;
+
 /**
  * Goal which concatenates several files and creates a new file as specified.
  *
  * @Mojo( name = "concat" )
  * @goal concat
- *
  * @Mojo( defaultPhase = "process-sources" )
  * @phase process-sources
  */
 public class ConcatMojo extends AbstractMojo {
 
 
-	/**
-	 * The resulting file
-	 *
-	 * @parameter
-	 * @required
-	 */
-	private File outputFile;
+    /**
+     * The resulting file
+     *
+     * @parameter
+     * @required
+     */
+    private File outputFile;
 
 
-	/**
-	 * Files to concatenate
-	 *
-	 * @parameter
-	 * @required
-	 */
-	private List<File> concatFiles;
+    /**
+     * Files to concatenate
+     *
+     * @parameter
+     * @required
+     */
+    private List<File> concatFiles;
 
 
-	/**
-	 * Append newline after each concatenation
-	 *
-	 * @parameter
-	 */
-	private boolean appendNewline=false;
+    /**
+     * Append newline after each concatenation
+     *
+     * @parameter
+     */
+    private boolean appendNewline = false;
 
 
-	/**
-	 * Skip non-existent or unreadable files
-	 *
-	 * @parameter
-	 */
-	private boolean skipUnreadableFiles=true;
+    /**
+     * Skip non-existent or unreadable files
+     *
+     * @parameter
+     */
+    private boolean skipUnreadableFiles = true;
 
 
-	/**
-	 * output before each file. The string {FILENAME} wil be replaced by the current file name. The string {NL} will be replaced by a line separator
-	 *
-	 * @parameter
-	 */
-	private String fileHeader=null;
+    /**
+     * output before each file. The string {FILENAME} wil be replaced by the current file name. The string {NL} will be replaced by a line separator
+     *
+     * @parameter
+     */
+    private String fileHeader = null;
 
-	/**
-	 * output after each file. The string {FILENAME} wil be replaced by the current file name. The string {NL} will be replaced by a line separator
-	 *
-	 * @parameter
-	 */
-	private String fileFooter=null;
+    /**
+     * output after each file. The string {FILENAME} wil be replaced by the current file name. The string {NL} will be replaced by a line separator
+     *
+     * @parameter
+     */
+    private String fileFooter = null;
 
 
-	/* (non-Javadoc)
-	 * @see org.apache.maven.plugin.AbstractMojo#execute()
-	 */
-	public void execute() throws MojoExecutionException {
+    /* (non-Javadoc)
+     * @see org.apache.maven.plugin.AbstractMojo#execute()
+     */
+    public void execute() throws MojoExecutionException {
         String lineSeparator = System.getProperty("line.separator");
-		if(validate()){
-			getLog().info("Going to concatenate files to destination file: " + outputFile.getAbsolutePath());
-			try {
+        if (validate()) {
+            getLog().info("Going to concatenate files to destination file: " + outputFile.getAbsolutePath());
+            try {
                 FileUtils.writeStringToFile(outputFile, "", "UTF-8", false);
-				for(File inputFile : concatFiles){
+                for (File inputFile : concatFiles) {
                     if (skipUnreadableFiles) {
                         if (!inputFile.exists()) {
                             getLog().warn("Skipping non-existent file: " + inputFile.getAbsolutePath());
@@ -107,57 +105,57 @@ public class ConcatMojo extends AbstractMojo {
                             continue;
                         }
                     }
-					getLog().debug("Concatenating file: " + inputFile.getAbsolutePath());
+                    getLog().debug("Concatenating file: " + inputFile.getAbsolutePath());
                     byte[] input;
                     try (InputStream inputStream = new FileInputStream(inputFile)) {
                         BOMInputStream bomInputStream = new BOMInputStream(inputStream);
                         ByteOrderMark bom = bomInputStream.getBOM();
                         final String charsetName;
-						if (bom == null) {
-							charsetName = "UTF-8";
-							getLog().info("input file " + inputFile.getAbsolutePath() + ": assuming charset " + charsetName);
-						} else {
-							charsetName = bom.getCharsetName();
-							getLog().info("input file " + inputFile.getAbsolutePath() + ": contains a BOM and has charset " + charsetName);
-						}
-						input = IOUtils.toByteArray(new InputStreamReader(bomInputStream, charsetName), "UTF-8");
+                        if (bom == null) {
+                            charsetName = "UTF-8";
+                            getLog().info("input file " + inputFile.getAbsolutePath() + ": assuming charset " + charsetName);
+                        } else {
+                            charsetName = bom.getCharsetName();
+                            getLog().info("input file " + inputFile.getAbsolutePath() + ": contains a BOM and has charset " + charsetName);
+                        }
+                        input = IOUtils.toByteArray(new InputStreamReader(bomInputStream, charsetName), "UTF-8");
                     }
                     if (fileHeader != null) {
                         String header = fileHeader.replace("{FILENAME}", inputFile.getName()).replace("{NL}", lineSeparator);
                         FileUtils.writeStringToFile(outputFile, header, "UTF-8", true);
                     }
-					FileUtils.writeByteArrayToFile(outputFile, input, true);
+                    FileUtils.writeByteArrayToFile(outputFile, input, true);
                     if (fileFooter != null) {
                         String footer = fileFooter.replace("{FILENAME}", inputFile.getName()).replace("{NL}", lineSeparator);
                         FileUtils.writeStringToFile(outputFile, footer, "UTF-8", true);
                     }
-					if(appendNewline){
+                    if (appendNewline) {
                         FileUtils.writeStringToFile(outputFile, lineSeparator, "UTF-8", true);
-					}
+                    }
 
-				}
-			}catch(IOException e){
-				throw new MojoExecutionException("Failed to concatenate", e);
-			}
-		}
-	}
+                }
+            } catch (IOException e) {
+                throw new MojoExecutionException("Failed to concatenate", e);
+            }
+        }
+    }
 
-	private boolean validate() throws MojoExecutionException{
-		if(outputFile == null){
-			throw new MojoExecutionException("Please specify a correct outPutFile");
-		}
+    private boolean validate() throws MojoExecutionException {
+        if (outputFile == null) {
+            throw new MojoExecutionException("Please specify a correct outPutFile");
+        }
 
-		if(concatFiles == null || concatFiles.size() ==0){
-			throw new MojoExecutionException("Please specify the file(s) to concatenate");
-		}else if (!skipUnreadableFiles) {
-			for(File file : concatFiles){
-				if(!file.exists()){
-					throw new MojoExecutionException(file.getAbsolutePath() + " does not exists.");
-				}
-			}
+        if (concatFiles == null || concatFiles.size() == 0) {
+            throw new MojoExecutionException("Please specify the file(s) to concatenate");
+        } else if (!skipUnreadableFiles) {
+            for (File file : concatFiles) {
+                if (!file.exists()) {
+                    throw new MojoExecutionException(file.getAbsolutePath() + " does not exists.");
+                }
+            }
 
-		}
+        }
 
-		return true;
-	}
+        return true;
+    }
 }
