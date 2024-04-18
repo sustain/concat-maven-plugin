@@ -23,7 +23,7 @@
             <id>github</id>
             <distributionManagement>
                 <repository>
-                    <id>github</id>
+                    <id>github-sustain</id>
                     <name>GitHub Packages</name>
                     <url>https://maven.pkg.github.com/sustain/concat-maven-plugin</url>
                 </repository>
