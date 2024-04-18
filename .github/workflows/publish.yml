@@ -14,9 +14,6 @@ jobs:
         with:
           java-version: '8'
           distribution: 'corretto'
-      - uses: s4u/maven-settings-action@v3.0.0
-        with:
-          servers: '[{"id": "github-sustain", "username": "${{ secrets.MAVEN_PACKAGES_USERNAME }}", "password": "${{ secrets.MAVEN_PACKAGES_TOKEN }}"}]'
       - name: Publish package
         run: mvn --batch-mode -Pgithub deploy
         env:
